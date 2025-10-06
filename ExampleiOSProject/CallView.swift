@@ -1,22 +1,48 @@
-//
-//  CallView.swift
-//  ExampleiOSProject
-//
-//  Created by Manu Mathew on 06/10/25.
-//
-
 import SwiftUI
 import VudioLiveCalliOS
 
 struct CallView: View {
+    @Environment(\.dismiss) var dismiss
+
     @State private var showMessages = false
     @State private var messages: [String] = []
     @State private var newMessage = ""
+
+    @State private var isMicMuted = false
+    @State private var isCameraEnabled = true
+    @State private var isBackCamera = false
+
+    // Remote user states
+    @State private var remoteMicMuted = false
+    @State private var remoteCameraEnabled = true
 
     var body: some View {
         ZStack {
             RemoteVideoView()
                 .edgesIgnoringSafeArea(.all)
+            
+            // Remote mic/camera indicators
+            VStack {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        if !remoteCameraEnabled {
+                            Image(systemName: "video.slash.fill")
+                                .foregroundColor(.red)
+                                .padding(6)
+                                .background(Circle().fill(.white.opacity(0.7)))
+                        }
+                        if remoteMicMuted {
+                            Image(systemName: "mic.slash.fill")
+                                .foregroundColor(.red)
+                                .padding(6)
+                                .background(Circle().fill(.white.opacity(0.7)))
+                        }
+                    }
+                    .padding()
+                }
+                Spacer()
+            }
             
             VStack {
                 HStack {
@@ -29,20 +55,58 @@ struct CallView: View {
                 Spacer()
                 
                 HStack(spacing: 24) {
-                    Button(action: { VudioLiveCall.muteMicrophone(mute: true) }) {
-                        Label("Mute", systemImage: "mic.slash.fill")
+                    // Mic Button
+                    Button(action: {
+                        isMicMuted.toggle()
+                        VudioLiveCall.muteMicrophone(mute: isMicMuted)
+                    }) {
+                        Image(systemName: isMicMuted ? "mic.slash.fill" : "mic.fill")
+                            .font(.title2)
+                            .padding()
+                            .background(Circle().fill(.white.opacity(isMicMuted ? 0.8 : 0.3)))
+                            .foregroundColor(isMicMuted ? .red : .white)
                     }
-                    Button(action: { VudioLiveCall.enableCamera(enable: false) }) {
-                        Label("Camera", systemImage: "video.slash.fill")
+                    
+                    // Camera Button
+                    Button(action: {
+                        isCameraEnabled.toggle()
+                        VudioLiveCall.enableCamera(enable: isCameraEnabled)
+                    }) {
+                        Image(systemName: isCameraEnabled ? "video.fill" : "video.slash.fill")
+                            .font(.title2)
+                            .padding()
+                            .background(Circle().fill(.white.opacity(isCameraEnabled ? 0.3 : 0.8)))
+                            .foregroundColor(isCameraEnabled ? .white : .red)
                     }
-                    Button(action: { VudioLiveCall.useBackCamera(enable: true) }) {
-                        Label("Flip", systemImage: "arrow.triangle.2.circlepath.camera")
+                    
+                    // Flip Camera
+                    Button(action: {
+                        isBackCamera.toggle()
+                        VudioLiveCall.useBackCamera(enable: isBackCamera)
+                    }) {
+                        Image(systemName: "arrow.triangle.2.circlepath.camera")
+                            .font(.title2)
+                            .padding()
+                            .background(Circle().fill(.white.opacity(0.3)))
+                            .foregroundColor(.white)
                     }
+                    
+                    // Chat Button
                     Button(action: { showMessages.toggle() }) {
-                        Label("Chat", systemImage: "message.fill")
+                        Image(systemName: "message.fill")
+                            .font(.title2)
+                            .padding()
+                            .background(Circle().fill(.white.opacity(0.3)))
+                            .foregroundColor(.white)
                     }
-                    Button(role: .destructive, action: { VudioLiveCall.endCall() }) {
-                        Label("End", systemImage: "phone.down.fill")
+                    
+                    // End Call
+                    Button(action: { endCallAndDismiss() }) {
+                        Image(systemName: "phone.down.fill")
+                            .font(.title2)
+                            .padding()
+                            .background(Circle().fill(Color.red))
+                            .foregroundColor(.white)
                     }
                 }
                 .padding()
@@ -62,16 +126,33 @@ struct CallView: View {
             )
         }
     }
+
+    private func endCallAndDismiss() {
+        VudioLiveCall.endCall()
+        dismiss()
+    }
 }
 
 extension CallView: CallInteractionCallback {
     func onReceivingMessage(message: Message) {
         messages.append(message.message ?? "Message")
     }
-    func onRemoteMicUpdate(muted: Bool) { print("Remote mic: \(muted)") }
-    func onRemoteCameraUpdate(enabled: Bool) { print("Remote cam: \(enabled)") }
-    func onCallEnded() { print("Call ended") }
-    func onPermissionError(message: String) { print("Permission error: \(message)") }
+    
+    func onRemoteMicUpdate(muted: Bool) {
+        remoteMicMuted = muted
+    }
+    
+    func onRemoteCameraUpdate(enabled: Bool) {
+        remoteCameraEnabled = enabled
+    }
+    
+    func onCallEnded() {
+        endCallAndDismiss()
+    }
+    
+    func onPermissionError(message: String) {
+        print("Permission error: \(message)")
+    }
 }
 
 // Wrappers for UIKit Views
