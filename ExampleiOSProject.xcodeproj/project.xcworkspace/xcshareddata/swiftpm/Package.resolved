@@ -1,0 +1,24 @@
+{
+  "originHash" : "657da64de775158386d827f53ee529bf9c66a6259a21014c3505bad26ce10f3b",
+  "pins" : [
+    {
+      "identity" : "express-video-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zegolibrary/express-video-ios.git",
+      "state" : {
+        "revision" : "7a0c732fc8e33977836be52967969460becd16a4",
+        "version" : "3.22.0"
+      }
+    },
+    {
+      "identity" : "vudiolivecallios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://bitbucket.org/livelyvod/vudiolivecallios.git",
+      "state" : {
+        "revision" : "e9ae5139b0e5865e6ca0ac2d16f7d8c7e64b1e60",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}
